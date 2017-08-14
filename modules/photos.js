@@ -93,7 +93,10 @@ module.exports = {
         s3.putObject({
             Bucket: bucketName,
             Key: keyfile,
-            Body: base64Data
+            Body: base64Data,
+            ContentEncoding: 'base64',
+            ContentType: 'image/png',
+            ACL:'public-read'
         },function (err,resp) {
            if(err){
                defer.reject(err);

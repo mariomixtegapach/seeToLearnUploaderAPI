@@ -11,11 +11,10 @@ router.get('/', function(req, res, next) {
 
 router.post('/upload/image', function(req, res){
   var base64 = req.body.image;
-
-config
-  photos.UploadToAmazon(config.AWSConfig, base64,'see-to-learn',req.body.key)
+  buf = new Buffer(base64.replace(/^data:image\/\w+;base64,/, ""),'base64')
+  photos.UploadToAmazon(config.AWSConfig, buf,'see-to-learn',req.body.key)
     .then(function(result){
-      res.json({error: false, result : result});
+      res.json({error: false, result : result, resUrl : "https://s3.us-east-2.amazonaws.com/see-to-learn/"+req.body.key});
     }, function(err){
       console.log(err);
       res.status(400).json({error: true, message:'Error trying to sava image locally'});
