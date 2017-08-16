@@ -22,6 +22,23 @@ app.use(bodyParser.urlencoded({ extended: false, limit:'50mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(req, res, next){
+  
+  function setHeader(methodsAllowed){
+     res.header("Access-Control-Allow-Origin", "*");
+     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+     res.header("Access-Control-Allow-Methods",methodsAllowed.join(','));
+  }
+
+  if(req.headers['x-requested-with'] == 'io.ionic.starter'){
+    setHeader(['GET','POST','OPTIONS'])
+  } else if(req.headers['access-control-request-method'] == 'get') {
+    setHeader(['GET']);
+  }
+  next();
+})
+
+
 app.use('/', index);
 app.use('/users', users);
 
