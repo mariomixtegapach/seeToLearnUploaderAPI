@@ -95,9 +95,8 @@ module.exports = {
             Key: keyfile,
             Body: base64Data,
             ContentEncoding:"base64",
-            Metadata:{
-                "Content-Type":"image/png"
-            }
+            ContentType:"image/png",
+            ACL:'public-read'
         },function (err,resp) {
            if(err){
                defer.reject(err);

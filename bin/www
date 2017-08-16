@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('uploaderapi:server');
 var http = require('http');
-
+var fs = require("fs")
 /**
  * Get port from environment and store in Express.
  */
@@ -25,7 +25,7 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,'187.153.116.129');
+server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -88,3 +88,58 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+var io = require('socket.io').listen(4000);
+var ss = require('socket.io-stream');
+var AWS      = require('aws-sdk'),
+    zlib     = require('zlib'),
+    AWSConfig = require('../config.json').AWSConfig;
+    AWS.config.update(AWSConfig),
+    s3Stream = require('s3-upload-stream')(new AWS.S3());
+io.on('connection', function(socket) {
+  ss(socket).on('foo', function(stream,meta) {
+
+    
+
+
+    var compress = zlib.createGzip();
+    var upload = s3Stream.upload({
+      "Bucket": "see-to-learn",
+      "Key": "courses/"+meta.curseName,
+      ContentType:meta.contentType,
+      ACL:'public-read'
+    });
+
+    upload.maxPartSize(571520); // 2 MB 
+
+    // Handle errors. 
+    upload.on('error', function (error) {
+      console.log(error);
+    });
+    
+    /* Handle progress. Example details object:
+      { ETag: '"f9ef956c83756a80ad62f54ae5e7d34b"',
+        PartNumber: 5,
+        receivedSize: 29671068,
+        uploadedSize: 29671068 }
+    */
+    upload.on('part', function (details) {
+      console.log(details);
+    });
+    
+    /* Handle upload completion. Example details object:
+      { Location: 'https://bucketName.s3.amazonaws.com/filename.ext',
+        Bucket: 'bucketName',
+        Key: 'filename.ext',
+        ETag: '"bf2acbedf84207d696c8da7dbb205b9f-5"' }
+    */
+    upload.on('uploaded', function (details) {
+      console.log(details);
+    });
+    
+    // Pipe the incoming filestream through compression, and up to S3. 
+    stream.pipe(upload);
+
+    //stream.pipe(fs.createWriteStream('foo.txt'));
+  });
+});
